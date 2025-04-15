@@ -85,9 +85,9 @@ for qx in range(8):
                 sector[qx,qy,sx,sy] = ObjSector(quadrant[qx,qy], sx, sy)
 
 # Populate Sectors
-numklingons = random.randint(15,30)
+numklingons = random.randint(20,30)
 numbases = random.randint(4,7)
-numstars = random.randint(50,100)
+numstars = random.randint(75,150)
 galaxy = ObjGalaxy(numklingons, numbases, numstars)
 for b in range(numbases + 1):
     while True:

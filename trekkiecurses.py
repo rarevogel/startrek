@@ -1,5 +1,6 @@
 import string
 import random
+import curses
 
 class ObjEnterprise:
     def __init__(self):
@@ -50,29 +51,30 @@ class ObjGalaxy:
 def generator(size=6, chars=string.ascii_uppercase + string.digits):
     return ''.join(random.choice(chars) for _ in range(size))
 
-def display_grids(galaxy, quadrant):
-    # Print galaxy map
-    print('+---+---+---+---+---+---+---+---+')
+def display_galaxy(galaxy, quadrant):
+    scr.addstr(0,0,'GALAXY:')
+    scr.addstr(1,0,'+---+---+---+---+---+---+---+---+')
     for qy in range(0,8):
-        print('|', end='')
+        scr.addstr(qy+2,0,'|')
         for qx in range(0,8):
-            print(str(quadrant[qx,qy].numk) + str(quadrant[qx,qy].numb) + str(quadrant[qx,qy].nums) + '|', end='')
-        print()    
-    print('+---+---+---+---+---+---+---+---+')
-    print('Klingons: ' + str(galaxy.numk))
-    print('Bases:    ' + str(galaxy.numb))
-    print('Stars:    ' + str(galaxy.nums))
+            if qy == enterprise.qypos and qx == enterprise.qxpos:
+                scr.addstr(qy+2,1+qx*4,str(quadrant[qx,qy].numk) + str(quadrant[qx,qy].numb) + str(quadrant[qx,qy].nums), curses.A_REVERSE)
+                scr.addstr(qy+2,4+qx*4,'|')
+            else:    
+                scr.addstr(qy+2,1+qx*4,str(quadrant[qx,qy].numk) + str(quadrant[qx,qy].numb) + str(quadrant[qx,qy].nums) + '|')
+    scr.addstr(qy+3,0,'+---+---+---+---+---+---+---+---+')
+    scr.addstr(qy+4,0,'Klingons: ' + str(galaxy.numk))
+    scr.addstr(qy+5,0,'Bases:    ' + str(galaxy.numb))
+    scr.addstr(qy+6,0,'Stars:    ' + str(galaxy.nums))
     
-    # Print current quadrant
-    print('QUADRANT: ', quadrant[enterprise.qxpos,enterprise.qypos].name)
-    print('+---+---+---+---+---+---+---+---+')
-    for sy in range(8):
-        print('|', end='')
-        for sx in range(8):
-            print(' ' + sector[enterprise.qxpos,enterprise.qypos,sx,sy].occupant + ' |', end='')
-        print()    
-    print('+---+---+---+---+---+---+---+---+')
-
+def display_quadrant(quadrant):
+    scr.addstr(0,44,'QUADRANT: ' + quadrant[enterprise.qxpos,enterprise.qypos].name)
+    scr.addstr(1,44,'+---+---+---+---+---+---+---+---+')
+    for sy in range(0,8):
+        scr.addstr(sy+2,44,'|')
+        for sx in range(0,8):
+            scr.addstr(sy+2,45+sx*4,' ' + sector[enterprise.qxpos,enterprise.qypos,sx,sy].occupant + ' |')
+    scr.addstr(sy+3,44,'+---+---+---+---+---+---+---+---+')
 
 # Generate Quadrants and Sectors
 sector = {}
@@ -122,30 +124,25 @@ for b in range(numstars + 1):
             quadrant[sector[qx,qy,sx,sy].quadrant.xpos,sector[qx,qy,sx,sy].quadrant.ypos].nums += 1
             break
 
-# Print all sectors
-# for qx in range(0,8):
-#     for qy in range(0,8):
-#         print('QUADRANT: ', quadrant[qx,qy].name)
-#         print('+---+---+---+---+---+---+---+---+')
-#         for sy in range(8):
-#             print('|', end='')
-#             for sx in range(8):
-#                 print(' ' + sector[qx,qy,sx,sy].occupant + ' |', end='')
-#             print()    
-#         print('+---+---+---+---+---+---+---+---+')
-
 enterprise = ObjEnterprise()
-display_grids(galaxy, quadrant)
+
+scr = curses.initscr()
+display_galaxy(galaxy, quadrant)
+display_quadrant(quadrant)
+scr.refresh()
+
 while True:
-    key = input('Command: ')
-    if key == '1':
+    k = scr.getch()
+    if chr(k) == 'S':
         enterprise.qypos += 1
-    if key == '2':
+    if chr(k) == 'W':
         enterprise.qypos -= 1               
-    if key == '3':
+    if chr(k) == 'D':
         enterprise.qxpos += 1               
-    if key == '4':
+    if chr(k) == 'A':
         enterprise.qxpos -= 1
-    if key == '9':
+    if chr(k) == 'Q':
         quit()
-    display_grids(galaxy, quadrant)            
+    display_galaxy(galaxy, quadrant)
+    display_quadrant(quadrant)
+    scr.refresh()
