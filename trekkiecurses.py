@@ -58,23 +58,52 @@ def display_galaxy(galaxy, quadrant):
         scr.addstr(qy+2,0,'|')
         for qx in range(0,8):
             if qy == enterprise.qypos and qx == enterprise.qxpos:
-                scr.addstr(qy+2,1+qx*4,str(quadrant[qx,qy].numk) + str(quadrant[qx,qy].numb) + str(quadrant[qx,qy].nums), curses.A_REVERSE)
+                scr.addstr(qy+2,1+qx*4,str(quadrant[qx,qy].numk) + str(quadrant[qx,qy].numb) + str(quadrant[qx,qy].nums), curses.A_STANDOUT)
                 scr.addstr(qy+2,4+qx*4,'|')
             else:    
                 scr.addstr(qy+2,1+qx*4,str(quadrant[qx,qy].numk) + str(quadrant[qx,qy].numb) + str(quadrant[qx,qy].nums) + '|')
     scr.addstr(qy+3,0,'+---+---+---+---+---+---+---+---+')
-    scr.addstr(qy+4,0,'Klingons: ' + str(galaxy.numk))
-    scr.addstr(qy+5,0,'Bases:    ' + str(galaxy.numb))
-    scr.addstr(qy+6,0,'Stars:    ' + str(galaxy.nums))
+    scr.addstr(qy+5,0,'Klingons: ' + str(galaxy.numk))
+    scr.addstr(qy+6,0,'Bases:    ' + str(galaxy.numb))
+    scr.addstr(qy+7,0,'Stars:    ' + str(galaxy.nums))
     
 def display_quadrant(quadrant):
-    scr.addstr(0,44,'QUADRANT: ' + quadrant[enterprise.qxpos,enterprise.qypos].name)
-    scr.addstr(1,44,'+---+---+---+---+---+---+---+---+')
+    scr.addstr(0,40,'QUADRANT: ' + quadrant[enterprise.qxpos,enterprise.qypos].name)
+    scr.addstr(1,40,'+---+---+---+---+---+---+---+---+')
     for sy in range(0,8):
-        scr.addstr(sy+2,44,'|')
+        scr.addstr(sy+2,40,'|')
         for sx in range(0,8):
-            scr.addstr(sy+2,45+sx*4,' ' + sector[enterprise.qxpos,enterprise.qypos,sx,sy].occupant + ' |')
-    scr.addstr(sy+3,44,'+---+---+---+---+---+---+---+---+')
+            scr.addstr(sy+2,41+sx*4,' ' + sector[enterprise.qxpos,enterprise.qypos,sx,sy].occupant + ' |')
+    scr.addstr(sy+3,40,'+---+---+---+---+---+---+---+---+')
+
+def display_metrics(enterprise):
+    scr.addstr(2,75,'Energy  : ' + str(enterprise.energy))
+    scr.addstr(3,75,'Torpedos: ' + str(enterprise.torpedos))
+    scr.addstr(4,75,'Shields : ' + str(enterprise.shields))
+
+def display_keys():
+    scr.addstr(12,18,'N = Navigation')
+    scr.addstr(13,18,'P = Phasers')
+    scr.addstr(14,18,'T = Torpedos')
+    scr.addstr(15,18,'S = Shields')
+    scr.addstr(16,18,'C = Computer')
+    scr.addstr(17,18,'Q = Quit')
+
+def shields(enterprise):
+    scr.addstr(13,40,'Add value to shields (1 - ' + str(enterprise.energy) + '):')
+    input = int(scr.getstr(13,73))
+    enterprise.shields += input
+    enterprise.energy -= input
+    scr.addstr(13,40,'                                        ')
+    scr.addstr(12,40,'COMMAND:  ')
+
+def display_all():
+    display_galaxy(galaxy, quadrant)
+    display_quadrant(quadrant)
+    display_metrics(enterprise)
+    display_keys()
+    scr.addstr(12,40,'COMMAND: ')
+    scr.refresh()
 
 # Generate Quadrants and Sectors
 sector = {}
@@ -127,13 +156,11 @@ for b in range(numstars + 1):
 enterprise = ObjEnterprise()
 
 scr = curses.initscr()
-display_galaxy(galaxy, quadrant)
-display_quadrant(quadrant)
-scr.refresh()
+display_all()
 
 while True:
     k = scr.getch()
-    if chr(k) == 'S':
+    if chr(k) == 'X':
         enterprise.qypos += 1
     if chr(k) == 'W':
         enterprise.qypos -= 1               
@@ -141,8 +168,12 @@ while True:
         enterprise.qxpos += 1               
     if chr(k) == 'A':
         enterprise.qxpos -= 1
+    if chr(k) == 'S':
+        shields(enterprise)
     if chr(k) == 'Q':
+        curses.nocbreak()
+        scr.keypad(False)
+        curses.echo()
+        curses.endwin()
         quit()
-    display_galaxy(galaxy, quadrant)
-    display_quadrant(quadrant)
-    scr.refresh()
+    display_all()
